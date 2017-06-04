@@ -5,16 +5,15 @@ Created on Fri Jun  2 20:06:09 2017
 
 @author: guzman
 """
+
+# Import python libraries
+
 import tweepy
 import time
 from py2neo import authenticate, Graph
 from random import choice
 
-
-"""
-twitter authentication
-"""
-
+# Twitter authentication
 # OAuthentication
 with open('../twitter-OAuth.py') as oauth:
     exec(oauth.read())
@@ -22,10 +21,7 @@ with open('../twitter-OAuth.py') as oauth:
 # Create API
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
 
-
-"""
-Neo4j DB graph authentication and build some constraints
-"""
+# Neo4j DB graph authentication and build some constraints
 
 # Connect to graph
 url = "http://localhost:7474/db/data/"
@@ -40,7 +36,7 @@ graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
 graph.run("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 # Query words
-queries = ["aguada", "aguatero", "hebraica", "macabi", "finalesLUB", "juntosporlanovena"]
+queries = ["aguada", "aguatero", "hebraica", "macabi", "finalesLUB", "juntosporlanovena", "vamossha", "finaleslub"]
 
 # Add query string to filename
 q = ""
@@ -78,63 +74,10 @@ while True:
 
         since_id = tweets[0].id
 
-        # Pass dict to Cypher and build query.
-        query = """
-        UNWIND {tweets} AS t
-
-        WITH t
-        ORDER BY t.id
-
-        WITH t,
-             t.entities AS e,
-             t.user AS u,
-             t.retweeted_status AS retweet
-
-        MERGE (tweet:Tweet {id:t.id})
-        SET tweet.text = t.text,
-            tweet.created_at = t.created_at,
-            tweet.favorites = t.favorite_count
-
-        MERGE (user:User {screen_name:u.screen_name})
-        SET user.name = u.name,
-            user.location = u.location,
-            user.followers = u.followers_count,
-            user.following = u.friends_count,
-            user.statuses = u.statuses_count,
-            user.profile_image_url = u.profile_image_url
-
-        MERGE (user)-[:POSTS]->(tweet)
-
-        MERGE (source:Source {name:t.source})
-        MERGE (tweet)-[:USING]->(source)
-
-        FOREACH (h IN e.hashtags |
-          MERGE (tag:Hashtag {name:LOWER(h.text)})
-          MERGE (tag)-[:TAGS]->(tweet)
-        )
-
-        FOREACH (u IN e.urls |
-          MERGE (url:Link {url:u.expanded_url})
-          MERGE (tweet)-[:CONTAINS]->(url)
-        )
-
-        FOREACH (m IN e.user_mentions |
-          MERGE (mentioned:User {screen_name:m.screen_name})
-          ON CREATE SET mentioned.name = m.name
-          MERGE (tweet)-[:MENTIONS]->(mentioned)
-        )
-
-        FOREACH (r IN [r IN [t.in_reply_to_status_id] WHERE r IS NOT NULL] |
-          MERGE (reply_tweet:Tweet {id:r})
-          MERGE (tweet)-[:REPLY_TO]->(reply_tweet)
-        )
-
-        FOREACH (retweet_id IN [x IN [retweet.id] WHERE x IS NOT NULL] |
-            MERGE (retweet_tweet:Tweet {id:retweet_id})
-            MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
-        )
-        """
-
+        # Pass dict to Cypher and build query from cypher script file        
+        with open('/home/guzman/Documentos/GitLab/ComplexNetworks/Cypher/queries-in-script.cypher') as query:
+            query = query.read()        
+        
         # Send Cypher query.
         graph.run(query, tweets=[tweet._json for tweet in tweets])
 
@@ -153,9 +96,7 @@ while True:
 # Import graph to python - queries
 
 # Return all the nodes in the DB
-graph.run('MATCH (n) RETURN n;')
-
-graph.run('match (n:User {screen_name: "leobardo_96"})-[]-(m) return n, m;')
+a = graph.run('MATCH (n) RETURN n;')
 
 
 
