@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Fri Jun  2 20:06:09 2017
 
@@ -9,8 +10,10 @@ Created on Fri Jun  2 20:06:09 2017
 # Import python libraries
 import tweepy
 import time
-from py2neo import authenticate, Graph
 from random import choice
+from py2neo import authenticate, Graph
+import cypher
+import networkx as nx
 
 # Twitter authentication
 # OAuthentication
@@ -26,6 +29,8 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, 
 url = "http://localhost:7474/db/data/"
 authenticate("localhost:7474", neo4jUser, neo4jPass)
 graph = Graph(url)
+
+connPar = "http://" + neo4jUser + ":" + neo4jPass + "@localhost:7474/db/data/"
 
 # Add uniqueness constraints
 graph.run("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
@@ -93,13 +98,65 @@ while True:
 
 
 # Import graph to python - queries
+# https://nicolewhite.github.io/neo4j-jupyter/hello-world.html
 
 # Return all the nodes in the DB
-a = graph.run('MATCH (n) RETURN n;')
-b = a.data()
+data = graph.run('')
 
+data = graph.run('MATCH usPostw=(:User)-[r:POSTS]->(:Tweet) MATCH twRettw=(:Tweet)-[r2:RETWEETS]->(:Tweet) MATCH twReptw=(:Tweet)-[r3:REPLY_TO]->(:Tweet) MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User) RETURN usPostw,twRettw,twReptw,twMenus LIMIT 10;')
 
+data = [tuple(x) for x in data]
 
+for d in data:
+    print(d)
 
+results = cypher.run('MATCH usPostw=(:User)-[r:POSTS]->(:Tweet) MATCH twRettw=(:Tweet)-[r2:RETWEETS]->(:Tweet) MATCH twReptw=(:Tweet)-[r3:REPLY_TO]->(:Tweet) MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User) RETURN usPostw,twRettw,twReptw,twMenus LIMIT 100;', conn=connPar)
 
+g = results.get_graph()
+nx.draw(g)
 
+g.nodes(data=True)
+
+nx.info(g)
+
+nx.degree_histogram(g)
+
+# Degrees
+deg = nx.degree(g)
+
+# Número de nodos y ejes
+numNod = nx.number_of_nodes(g)
+numEdg = nx.number_of_edges(g)
+
+# Componentes conectados
+conComp = nx.number_connected_components(g)
+
+# Componentes conexas
+cns = nx.connected_components(g)
+
+# Diámetro
+d = nx.diameter(g)
+
+# Excentricidad
+ecc = nx.eccentricity(g)
+
+# Centro
+cen = nx.center(g)
+
+# Periferia
+per = nx.periphery(g)
+
+# Transistividad
+tr = nx.transitivity(g)
+
+# Resumen
+print("componentes conexas: ", cns)
+print("diameter: %s" % d)
+print("eccentricity: %s" % ecc)
+print("center: %s" % cen)
+print("periphery: %s" % per)
+
+# 3d visualization
+import jgraph
+
+jgraph.draw(data)
