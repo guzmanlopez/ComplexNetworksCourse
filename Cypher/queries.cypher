@@ -1,3 +1,13 @@
+// Borrar todos los nodos y sus Relaciones de la base de datos
+
+// Desde base de datos
+MATCH (n)
+OPTIONAL MATCH (n)-[r]-()
+DELETE n,r
+
+// Borrando archivos
+// ▶ sudo rm -rf /var/lib/neo4j/data/databases/graph.db
+
 // Gráfico todos los nodos y conexiones
 MATCH (node) RETURN node;
 
@@ -13,8 +23,6 @@ RETURN u.screen_name AS User, t.text AS Tweet, Retweets;
 MATCH (n1:User), (n2:User)
 WHERE n1.screen_name = "Aguada_oficial" AND n2.screen_name = "Hebraicaymacabi"
 RETURN n1,n2
-
-// TESTS
 
 // Relaciones entre Usuarios-Tweets(para tweets que mencionan a dos usuarios)
 MATCH p=(:Tweet)-[r:MENTIONS]->(n:User)
@@ -43,33 +51,31 @@ MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User)
 RETURN usPostw,twRettw,twReptw,twMenus
 LIMIT 500
 
-MATCH a=()-[r:POSTS, r2:RETWEETS]-()
-RETURN a
-MATCH ()-[r2:RETWEETS]-() 
-MATCH ()-[r3:REPLY_TO]-()
-MATCH ()-[r4:MENTIONS]-()
-
-
 // Top 10 frecuencia de Hashtags
 MATCH (:Hashtag)-[:TAGS]->(:Tweet)<-[:TAGS]-(h:Hashtag)
 RETURN h.name AS Hashtag, COUNT(*) AS Count
 ORDER BY Count DESC
 LIMIT 10
 
-// Top 5 Tweets más retweeteado, y quien lo posteó
+// Top 10 Tweets más retweeteado, y quien lo posteó
 MATCH (:Tweet)-[:RETWEETS]->(t:Tweet)
 WITH t, COUNT(*) AS Retweets
 ORDER BY Retweets DESC
-LIMIT 5
+LIMIT 10
 MATCH (u:User)-[:POSTS]->(t)
 RETURN u.screen_name AS User, t.text AS Tweet, Retweets
+
+// Top 10 MENTIONS
+MATCH (u:User)-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User)
+WHERE u.screen_name <> ''
+RETURN u.screen_name AS screen_name, COUNT(u.screen_name) AS count
+ORDER BY count
+DESC LIMIT 10
 
 // Todos los nodos con fechas de creación
 MATCH (n)
 WHERE EXISTS(n.created_at)
 RETURN DISTINCT "node" as element, n.created_at AS created_at
-LIMIT 25
 UNION ALL MATCH ()-[r]-()
 WHERE EXISTS(r.created_at)
 RETURN DISTINCT "relationship" AS element, r.created_at AS created_at
-LIMIT 25
