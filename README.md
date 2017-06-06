@@ -17,12 +17,13 @@ sudo cp -v /graphdb/* /var/lib/neo4j/data/databases/graph.db/
 
 ```
 
+
 # Análisis de la red de *tweets* y usuarios relacionados con la final de la Liga Uruguaya de Basketball (LUB).
 
 ## Trabajo final del curso "De las redes complejas a las redes sociales: Introducción al Uso del Big Data"
 
 
-### Integrantes del equipo: 
+### Integrantes del equipo:
 
 - Andrea Apolaro
 - Guzmán López
@@ -40,7 +41,7 @@ En el marco del curso ...
 
 Se utilizó el lenguaje de programación Python (versión 3.6.1) ...
 
-Importar librerías 
+Importar librerías
 
 
 ```python
@@ -51,10 +52,10 @@ from random import choice
 from py2neo import authenticate, Graph
 import cypher
 import networkx as nx
-import numpy
+import matplotlib.pyplot as plt
 ```
 
-Autenticación de Twitter mediante la lectura de un archivo externo con las claves requeridas:
+Autenticación de Twitter y Neo4j mediante la lectura de un archivo externo con las claves requeridas:
 
 
 ```python
@@ -68,11 +69,15 @@ access_token_secret = "XXXXXXXXXX"
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
+
+# Neo4j
+neo4jUser = "xxxx"
+neo4jPass = "xxxx"
 ```
 
 
 ```python
-# Twitter authentication credentials and Neo4j credentials
+# Authentication credentials for Tweeter and Neo4j credentials
 with open('/home/guzman/Documentos/Cursos/Redes Complejas - Introducción al uso del Big Data/Python/twitter-OAuth.py') as oauth:
     exec(oauth.read())
 ```
@@ -91,8 +96,8 @@ Comenzar el servicio de la base de datos Neo4j desde una consola:
 ```python
 %%sh
 
-# Start neo4j service 
-sudo systemctl start neo4j.service
+# Start neo4j service
+systemctl start neo4j.service
 
 # Check status of neo4j service
 systemctl status neo4j.service
@@ -100,19 +105,19 @@ systemctl status neo4j.service
 
     ● neo4j.service - Neo4j
        Loaded: loaded (/usr/lib/systemd/system/neo4j.service; disabled; vendor preset: disabled)
-       Active: active (running) since Mon 2017-06-05 16:49:27 -03; 45min ago
-      Process: 4748 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
-     Main PID: 4808 (java)
-        Tasks: 67 (limit: 4915)
-       Memory: 620.8M
-          CPU: 2min 58.826s
+       Active: active (running) since Tue 2017-06-06 08:40:45 -03; 4ms ago
+      Process: 1486 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
+     Main PID: 1546 (java)
+        Tasks: 40 (limit: 4915)
+       Memory: 22.5M
+          CPU: 131ms
        CGroup: /system.slice/neo4j.service
-               └─4808 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
-    
-    jun 05 16:49:27 carqueja systemd[1]: Starting Neo4j...
-    jun 05 16:49:27 carqueja neo4j[4748]: Starting Neo4j.
-    jun 05 16:49:27 carqueja neo4j[4748]: Started neo4j (pid 4808). By default, it is available at http://localhost:7474/
-    jun 05 16:49:27 carqueja systemd[1]: Started Neo4j.
+               └─1546 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
+
+    jun 06 08:40:45 carqueja systemd[1]: Starting Neo4j...
+    jun 06 08:40:45 carqueja neo4j[1486]: Starting Neo4j.
+    jun 06 08:40:45 carqueja neo4j[1486]: Started neo4j (pid 1546). By default, it is available at http://localhost:7474/
+    jun 06 08:40:45 carqueja systemd[1]: Started Neo4j.
 
 
 Autenticación de la base de datos no relacional Neo4j a través de la lectura del archivo externo con las claves de usuario y contraseña requeridas leído anteriormente.
@@ -189,7 +194,7 @@ def search_tweets(query, since_id):
     return api.search(q=query, count=count, until=until, result_type=result_type, lang=lang, since_id=since_id)
 ```
 
-Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j. 
+Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j.
 
 
 ```python
@@ -204,7 +209,7 @@ while True:
             print("No tweets found.\n")
             time.sleep(65)
             continue
-        
+
         since_id = tweets[0].id
 
         # Send Cypher query.
@@ -248,16 +253,16 @@ for i in range(0,5):
     i = i + 1
 ```
 
-    1 - ((efde275)-[:POSTS]->(ff9c39b), (fe10090)-[:RETWEETS]->(e01ac8a), (dc701ab)-[:REPLY_TO]->(d82112d), (fe10090)-[:MENTIONS]->(efde275))
-    
-    2 - ((efde275)-[:POSTS]->(ff9c39b), (fe10090)-[:RETWEETS]->(e01ac8a), (dc701ab)-[:REPLY_TO]->(d82112d), (fe10090)-[:MENTIONS]->(f8307ec))
-    
-    3 - ((efde275)-[:POSTS]->(ff9c39b), (fe10090)-[:RETWEETS]->(e01ac8a), (dc701ab)-[:REPLY_TO]->(d82112d), (e01ac8a)-[:MENTIONS]->(f8307ec))
-    
-    4 - ((efde275)-[:POSTS]->(ff9c39b), (fe10090)-[:RETWEETS]->(e01ac8a), (dc701ab)-[:REPLY_TO]->(d82112d), (b68c158)-[:MENTIONS]->(c116eea))
-    
-    5 - ((efde275)-[:POSTS]->(ff9c39b), (fe10090)-[:RETWEETS]->(e01ac8a), (dc701ab)-[:REPLY_TO]->(d82112d), (e117e07)-[:MENTIONS]->(c116eea))
-    
+    1 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(e7d8479))
+
+    2 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(de94de1))
+
+    3 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (b306a18)-[:MENTIONS]->(de94de1))
+
+    4 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (e3cc96b)-[:MENTIONS]->(b91061a))
+
+    5 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (bfc1894)-[:MENTIONS]->(b91061a))
+
 
 
 Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su información:
@@ -280,7 +285,7 @@ print(nx.info(g))
 ```
 
     100000 rows affected.
-    Name: 
+    Name:
     Type: MultiDiGraph
     Number of nodes: 267
     Number of edges: 366
@@ -292,23 +297,35 @@ Graficar el objeto de grafos:
 
 
 ```python
-nx.draw(g)
+%matplotlib inline
+
+# Create network layout for visualizations
+spring_pos = nx.spring_layout(g)
+
+# Plot graph
+plt.axis("off")
+nx.draw_networkx(g, pos = spring_pos, with_labels = False, node_size = 30)
+
 ```
 
-    /usr/lib/python3.6/site-packages/networkx/drawing/nx_pylab.py:126: MatplotlibDeprecationWarning: pyplot.hold is deprecated.
-        Future behavior will be consistent with the long-time default:
-        plot commands add elements without first clearing the
-        Axes and/or Figure.
-      b = plt.ishold()
-    /usr/lib/python3.6/site-packages/networkx/drawing/nx_pylab.py:138: MatplotlibDeprecationWarning: pyplot.hold is deprecated.
-        Future behavior will be consistent with the long-time default:
-        plot commands add elements without first clearing the
-        Axes and/or Figure.
-      plt.hold(b)
-    /usr/lib/python3.6/site-packages/matplotlib/__init__.py:917: UserWarning: axes.hold is deprecated. Please remove it from your matplotlibrc and/or style files.
-      warnings.warn(self.msg_depr_set % key)
-    /usr/lib/python3.6/site-packages/matplotlib/rcsetup.py:152: UserWarning: axes.hold is deprecated, will be removed in 3.0
-      warnings.warn("axes.hold is deprecated, will be removed in 3.0")
+
+![png](output_31_0.png)
+
+
+
+```python
+%matplotlib inline
+
+d = nx.degree(g)
+
+# Plot graph
+plt.axis("off")
+nx.draw_networkx(g, pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 30 for v in d.values()])
+
+```
+
+
+![png](output_32_0.png)
 
 
 Ver nodos:
@@ -316,38 +333,63 @@ Ver nodos:
 
 ```python
 # View first five nodes
-
 i = 0
 for i in range(0,5):
-    print(str(i + 1) + " - " + str(g.nodes(data=True)[i]) + "\n")
+    print(str(i + 1) + "- " + str(g.nodes(data=True)[i]))
     i = i + 1
 ```
 
-    1 - ('0', {'favorites': 2, 'created_at': 'Wed May 31 21:03:11 +0000 2017', 'id': 870022870512152577, 'text': 'tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
-    
-    2 - ('1', {'favorites': 0, 'created_at': 'Wed May 31 21:14:07 +0000 2017', 'id': 870025622801838080, 'text': 'RT @KarinaAguatera: tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
-    
-    3 - ('2', {'favorites': 1, 'created_at': 'Wed May 31 21:24:58 +0000 2017', 'id': 870028352631054336, 'text': 'mi trabajo de parto duro menos q sacar las entradas para la última final. #JuntosPorLaNovena', 'labels': ['Tweet']})
-    
-    4 - ('100', {'followers': 190, 'screen_name': 'KarinaAguatera', 'following': 964, 'name': '@JAKCARBONEROS', 'statuses': 1725, 'profile_image_url': 'http://pbs.twimg.com/profile_images/871221543908638720/x4FSyHJs_normal.jpg', 'location': 'montevideo', 'labels': ['User']})
-    
-    5 - ('4', {'favorites': 1, 'created_at': 'Thu Jun 01 13:37:06 +0000 2017', 'id': 870272998175014913, 'text': '@jptaibo27 Noo Juampa no me hagas eso! se me cayo un idolo! #juntosporlanovena  #gocavs   Aguatero y Lebronista!!', 'labels': ['Tweet']})
-    
+    1- ('0', {'favorites': 2, 'created_at': 'Wed May 31 21:03:11 +0000 2017', 'id': 870022870512152577, 'text': 'tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
+    2- ('1', {'favorites': 0, 'created_at': 'Wed May 31 21:14:07 +0000 2017', 'id': 870025622801838080, 'text': 'RT @KarinaAguatera: tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
+    3- ('2', {'favorites': 1, 'created_at': 'Wed May 31 21:24:58 +0000 2017', 'id': 870028352631054336, 'text': 'mi trabajo de parto duro menos q sacar las entradas para la última final. #JuntosPorLaNovena', 'labels': ['Tweet']})
+    4- ('100', {'followers': 190, 'screen_name': 'KarinaAguatera', 'following': 964, 'name': '@JAKCARBONEROS', 'statuses': 1725, 'profile_image_url': 'http://pbs.twimg.com/profile_images/871221543908638720/x4FSyHJs_normal.jpg', 'location': 'montevideo', 'labels': ['User']})
+    5- ('4', {'favorites': 1, 'created_at': 'Thu Jun 01 13:37:06 +0000 2017', 'id': 870272998175014913, 'text': '@jptaibo27 Noo Juampa no me hagas eso! se me cayo un idolo! #juntosporlanovena  #gocavs   Aguatero y Lebronista!!', 'labels': ['Tweet']})
+
+
+Ver ejes:
+
+
+```python
+# View first five edges
+i = 0
+for i in range(0,5):
+    print(str(i + 1) + "- " + str(g.edges(data=True)[i]))
+    i = i + 1
+```
+
+    1- ('0', '101', {'type': 'MENTIONS'})
+    2- ('1', '100', {'type': 'MENTIONS'})
+    3- ('1', '0', {'type': 'RETWEETS'})
+    4- ('1', '101', {'type': 'MENTIONS'})
+    5- ('100', '2', {'type': 'POSTS'})
 
 
 Calcular principales métricas de los grafos:
 
 
 ```python
-# Degrees (max, min, mean)
-deg = nx.degree(g)
+# Tipe of graph
+esMultigrafo = g.is_multigraph()
+esDireccional = g.is_directed()
+esConectado = nx.is_connected(g2)
 
-# Número de nodos y ejes
+# Number of nodes and edges
 numNod = nx.number_of_nodes(g)
 numEdg = nx.number_of_edges(g)
 
+# Degrees (max, min, mean)
+deg = nx.degree(g)
+in_degrees  = g.in_degree()
+out_degrees  = g.out_degree()
+
 # Componentes conectados
-#conComp = nx.number_connected_components(g)
+if not esConectado:
+    g2 = g.to_undirected() # saco direccionalidad
+    g3 = nx.connected_components(g2) # me quedo con componentes conectados
+
+conComp = nx.number_connected_components(g2)
+
+g2_components = nx.connected_component_subgraphs(g2)
 
 # Componentes conexas
 #cns = nx.connected_components(g)
@@ -368,26 +410,98 @@ numEdg = nx.number_of_edges(g)
 #tr = nx.transitivity(g)
 
 # Resumen
-print("| Grado máximo:", str(max(deg)))
-print("| Grado mínimo:", str(min(deg)))
-#print("Grado promedio:", str(numpy.mean(deg)))
+print("| -------------------------------------------- |")
+if esMultigrafo:
+    print("| Tipo de grafo: multigrafo")
+if  not esMultigrafo:
+    print("| Tipo de grafo: simple")
 
+if esDireccional:
+    print("| Direccional: si")
+if  not esDireccional:
+    print("| Direccional: no")
+
+if esConectado:
+    print("| Conectado: si")
+if  not esConectado:
+    print("| Conectado: no")
+print("| -------------------------------------------- |")
 print("| Número de nodos:", str(numNod))
 print("| Número de conexiones:", str(numEdg))
+print("| -------------------------------------------- |")
+print("| Grado máximo entrada:", str(max(in_degrees.values())))
+print("| Grado mínimo entrada:", str(min(in_degrees.values())))
+print("| Grado promedio entrada:", str(sum(in_degrees.values())/len(deg.values())))
+print("| -------------------------------------------- |")
+print("| Grado máximo salida:", str(max(out_degrees.values())))
+print("| Grado mínimo salida:", str(min(out_degrees.values())))
+print("| Grado promedio salida:", str(sum(out_degrees.values())/len(deg.values())))
+print("| -------------------------------------------- |")
+print("| Grado máximo (no dir):", str(max(deg.values())))
+print("| Grado mínimo (no dir):", str(min(deg.values())))
+print("| Grado promedio (no dir):", str(sum(deg.values())/len(deg.values())))
+print("| -------------------------------------------- |")
+print("| Número de componentes conectados: %d" % nx.number_connected_components(g2))
 
-#print("componentes conexas: ", cns)
-#print("diameter: %s" % d)
-#print("eccentricity: %s" % ecc)
-#print("center: %s" % cen)
-#print("periphery: %s" % per)
-
-# 3d visualization
-#import jgraph
-#jgraph.draw(data)
+#print("| Radio: %d" % nx.radius(g))
+#print("| Diámetro: %d" % nx.diameter(g))
+#print("| Excentricidad: %s" % nx.eccentricity(g))
+#print("| Centro: %s" % center(g))
+#print("| Periferia: %s" % periphery(g))
+#print("| Densidad: %s" % density(g))
 ```
 
-    | Grado máximo: 99
-    | Grado mínimo: 0
+    | -------------------------------------------- |
+    | Tipo de grafo: multigrafo
+    | Direccional: si
+    | Conectado: no
+    | -------------------------------------------- |
     | Número de nodos: 267
     | Número de conexiones: 366
+    | -------------------------------------------- |
+    | Grado máximo entrada: 34
+    | Grado mínimo entrada: 0
+    | Grado promedio entrada: 1.3707865168539326
+    | -------------------------------------------- |
+    | Grado máximo salida: 6
+    | Grado mínimo salida: 0
+    | Grado promedio salida: 1.3707865168539326
+    | -------------------------------------------- |
+    | Grado máximo (no dir): 34
+    | Grado mínimo (no dir): 1
+    | Grado promedio (no dir): 2.741573033707865
+    | -------------------------------------------- |
+    | Número de componentes conectados: 38
 
+
+
+```python
+# Select most output connected nodes
+
+#resultsDeg = cypher.run('MATCH usPostw=(n:User)-[r:POSTS]->(:Tweet) \
+#                         RETURN id(n), size((n)-->()) as degree \
+#                         ORDER BY degree DESC LIMIT 10;', conn=connPar)
+
+#resultsDeg = cypher.run('MATCH (:Tweet)-[r4:MENTIONS]->(n:User) \
+#                         RETURN id(n), size((n)-->()) as degree \
+#                         ORDER BY degree DESC LIMIT 10;', conn=connPar)
+
+#print(resultsDeg)
+
+# Create graph object from Neo4j
+#g = results.get_graph()
+```
+
+Detectar comunidades:
+
+
+```python
+import community
+
+#parts = community.best_partition(g2)
+#values = [parts.get(node) for node in g.nodes()]
+
+#plt.axis("off")
+#nx.draw_networkx(g, pos = spring_pos, cmap = plt.get_cmap("jet"), node_color = values, node_size = 35, with_labels = False)
+
+```
