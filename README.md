@@ -23,7 +23,7 @@ sudo cp -v /graphdb/* /var/lib/neo4j/data/databases/graph.db/
 ## Trabajo final del curso "De las redes complejas a las redes sociales: Introducción al Uso del Big Data"
 
 
-### Integrantes del equipo:
+### Integrantes del equipo: 
 
 - Andrea Apolaro
 - Guzmán López
@@ -41,7 +41,7 @@ En el marco del curso ...
 
 Se utilizó el lenguaje de programación Python (versión 3.6.1) ...
 
-Importar librerías
+Importar librerías 
 
 
 ```python
@@ -96,7 +96,7 @@ Comenzar el servicio de la base de datos Neo4j desde una consola:
 ```python
 %%sh
 
-# Start neo4j service
+# Start neo4j service 
 systemctl start neo4j.service
 
 # Check status of neo4j service
@@ -113,7 +113,7 @@ systemctl status neo4j.service
           CPU: 131ms
        CGroup: /system.slice/neo4j.service
                └─1546 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
-
+    
     jun 06 08:40:45 carqueja systemd[1]: Starting Neo4j...
     jun 06 08:40:45 carqueja neo4j[1486]: Starting Neo4j.
     jun 06 08:40:45 carqueja neo4j[1486]: Started neo4j (pid 1546). By default, it is available at http://localhost:7474/
@@ -194,7 +194,7 @@ def search_tweets(query, since_id):
     return api.search(q=query, count=count, until=until, result_type=result_type, lang=lang, since_id=since_id)
 ```
 
-Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j.
+Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j. 
 
 
 ```python
@@ -209,7 +209,7 @@ while True:
             print("No tweets found.\n")
             time.sleep(65)
             continue
-
+        
         since_id = tweets[0].id
 
         # Send Cypher query.
@@ -254,15 +254,15 @@ for i in range(0,5):
 ```
 
     1 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(e7d8479))
-
+    
     2 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(de94de1))
-
+    
     3 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (b306a18)-[:MENTIONS]->(de94de1))
-
+    
     4 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (e3cc96b)-[:MENTIONS]->(b91061a))
-
+    
     5 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (bfc1894)-[:MENTIONS]->(b91061a))
-
+    
 
 
 Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su información:
@@ -270,12 +270,15 @@ Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su in
 
 ```python
 # Query Neo4j
-results = cypher.run('MATCH usPostw=(:User)-[r:POSTS]->(:Tweet) \
-                      MATCH twRettw=(:Tweet)-[r2:RETWEETS]->(:Tweet) \
-                      MATCH twReptw=(:Tweet)-[r3:REPLY_TO]->(:Tweet) \
-                      MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User) \
-                      RETURN usPostw,twRettw,twReptw,twMenus \
-                      LIMIT 100000;', conn=connPar)
+#results = cypher.run('MATCH usPostw=(:User)-[r:POSTS]->(:Tweet) \
+#                      MATCH twRettw=(:Tweet)-[r2:RETWEETS]->(:Tweet) \
+#                      MATCH twReptw=(:Tweet)-[r3:REPLY_TO]->(:Tweet) \
+#                      MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User) \
+#                      RETURN usPostw,twRettw,twReptw,twMenus \
+#                      LIMIT 100000;', conn=connPar)
+
+results = cypher.run('MATCH n=(:User)-[r]-() \
+                      RETURN n;', conn=connPar)
 
 # Create graph object from Neo4j
 g = results.get_graph()
@@ -284,13 +287,13 @@ g = results.get_graph()
 print(nx.info(g))
 ```
 
-    100000 rows affected.
-    Name:
+    442 rows affected.
+    Name: 
     Type: MultiDiGraph
-    Number of nodes: 267
-    Number of edges: 366
-    Average in degree:   1.3708
-    Average out degree:   1.3708
+    Number of nodes: 402
+    Number of edges: 442
+    Average in degree:   1.0995
+    Average out degree:   1.0995
 
 
 Graficar el objeto de grafos:
@@ -320,8 +323,7 @@ d = nx.degree(g)
 
 # Plot graph
 plt.axis("off")
-nx.draw_networkx(g, pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 30 for v in d.values()])
-
+nx.draw_networkx(g, pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 20 for v in d.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in d.values()])
 ```
 
 
@@ -339,11 +341,11 @@ for i in range(0,5):
     i = i + 1
 ```
 
-    1- ('0', {'favorites': 2, 'created_at': 'Wed May 31 21:03:11 +0000 2017', 'id': 870022870512152577, 'text': 'tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
-    2- ('1', {'favorites': 0, 'created_at': 'Wed May 31 21:14:07 +0000 2017', 'id': 870025622801838080, 'text': 'RT @KarinaAguatera: tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
+    1- ('1', {'favorites': 0, 'created_at': 'Wed May 31 21:14:07 +0000 2017', 'id': 870025622801838080, 'text': 'RT @KarinaAguatera: tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
+    2- ('100', {'followers': 190, 'screen_name': 'KarinaAguatera', 'following': 964, 'name': '@JAKCARBONEROS', 'statuses': 1725, 'profile_image_url': 'http://pbs.twimg.com/profile_images/871221543908638720/x4FSyHJs_normal.jpg', 'location': 'montevideo', 'labels': ['User']})
     3- ('2', {'favorites': 1, 'created_at': 'Wed May 31 21:24:58 +0000 2017', 'id': 870028352631054336, 'text': 'mi trabajo de parto duro menos q sacar las entradas para la última final. #JuntosPorLaNovena', 'labels': ['Tweet']})
-    4- ('100', {'followers': 190, 'screen_name': 'KarinaAguatera', 'following': 964, 'name': '@JAKCARBONEROS', 'statuses': 1725, 'profile_image_url': 'http://pbs.twimg.com/profile_images/871221543908638720/x4FSyHJs_normal.jpg', 'location': 'montevideo', 'labels': ['User']})
-    5- ('4', {'favorites': 1, 'created_at': 'Thu Jun 01 13:37:06 +0000 2017', 'id': 870272998175014913, 'text': '@jptaibo27 Noo Juampa no me hagas eso! se me cayo un idolo! #juntosporlanovena  #gocavs   Aguatero y Lebronista!!', 'labels': ['Tweet']})
+    4- ('0', {'favorites': 2, 'created_at': 'Wed May 31 21:03:11 +0000 2017', 'id': 870022870512152577, 'text': 'tamos ahí @sandynyordi #JuntosPorLaNovena https://t.co/x2kWrWLrS2', 'labels': ['Tweet']})
+    5- ('101', {'followers': 24, 'screen_name': 'sandynyordi', 'following': 183, 'name': '° SANDY ☆', 'statuses': 193, 'profile_image_url': 'http://pbs.twimg.com/profile_images/869902165720039425/hxWQH2WE_normal.jpg', 'location': '', 'labels': ['User']})
 
 
 Ver ejes:
@@ -357,11 +359,11 @@ for i in range(0,5):
     i = i + 1
 ```
 
-    1- ('0', '101', {'type': 'MENTIONS'})
-    2- ('1', '100', {'type': 'MENTIONS'})
-    3- ('1', '0', {'type': 'RETWEETS'})
-    4- ('1', '101', {'type': 'MENTIONS'})
-    5- ('100', '2', {'type': 'POSTS'})
+    1- ('1', '100', {'type': 'MENTIONS'})
+    2- ('1', '101', {'type': 'MENTIONS'})
+    3- ('100', '2', {'type': 'POSTS'})
+    4- ('100', '0', {'type': 'POSTS'})
+    5- ('0', '101', {'type': 'MENTIONS'})
 
 
 Calcular principales métricas de los grafos:
@@ -371,7 +373,7 @@ Calcular principales métricas de los grafos:
 # Tipe of graph
 esMultigrafo = g.is_multigraph()
 esDireccional = g.is_directed()
-esConectado = nx.is_connected(g2)
+esConectado = nx.is_connected(g.to_undirected())
 
 # Number of nodes and edges
 numNod = nx.number_of_nodes(g)
@@ -412,18 +414,18 @@ g2_components = nx.connected_component_subgraphs(g2)
 # Resumen
 print("| -------------------------------------------- |")
 if esMultigrafo:
-    print("| Tipo de grafo: multigrafo")
-if  not esMultigrafo:
+    print("| Tipo de grafo: multigrafo") 
+if  not esMultigrafo: 
     print("| Tipo de grafo: simple")
 
 if esDireccional:
-    print("| Direccional: si")
-if  not esDireccional:
+    print("| Direccional: si") 
+if  not esDireccional: 
     print("| Direccional: no")
 
 if esConectado:
-    print("| Conectado: si")
-if  not esConectado:
+    print("| Conectado: si") 
+if  not esConectado: 
     print("| Conectado: no")
 print("| -------------------------------------------- |")
 print("| Número de nodos:", str(numNod))
@@ -456,41 +458,318 @@ print("| Número de componentes conectados: %d" % nx.number_connected_components
     | Direccional: si
     | Conectado: no
     | -------------------------------------------- |
-    | Número de nodos: 267
-    | Número de conexiones: 366
+    | Número de nodos: 402
+    | Número de conexiones: 442
     | -------------------------------------------- |
     | Grado máximo entrada: 34
     | Grado mínimo entrada: 0
-    | Grado promedio entrada: 1.3707865168539326
+    | Grado promedio entrada: 1.099502487562189
     | -------------------------------------------- |
-    | Grado máximo salida: 6
+    | Grado máximo salida: 7
     | Grado mínimo salida: 0
-    | Grado promedio salida: 1.3707865168539326
+    | Grado promedio salida: 1.099502487562189
     | -------------------------------------------- |
     | Grado máximo (no dir): 34
     | Grado mínimo (no dir): 1
-    | Grado promedio (no dir): 2.741573033707865
+    | Grado promedio (no dir): 2.199004975124378
     | -------------------------------------------- |
-    | Número de componentes conectados: 38
+    | Número de componentes conectados: 45
 
+
+Seleccionar el ID de los 10 nodos con más conexiones de salida:
 
 
 ```python
 # Select most output connected nodes
 
-#resultsDeg = cypher.run('MATCH usPostw=(n:User)-[r:POSTS]->(:Tweet) \
-#                         RETURN id(n), size((n)-->()) as degree \
-#                         ORDER BY degree DESC LIMIT 10;', conn=connPar)
+resultsDegOut = cypher.run('MATCH (n:User)-->() \
+                            RETURN id(n) AS ID, n.screen_name AS NOMBRE, count(*) AS GRADO \
+                            ORDER BY GRADO DESC LIMIT 10', conn=connPar)
 
-#resultsDeg = cypher.run('MATCH (:Tweet)-[r4:MENTIONS]->(n:User) \
-#                         RETURN id(n), size((n)-->()) as degree \
-#                         ORDER BY degree DESC LIMIT 10;', conn=connPar)
+resultsDegOut.dataframe
 
-#print(resultsDeg)
+```
+
+    10 rows affected.
+
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>GRADO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>109</td>
+      <td>CesarGroba2016</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>211</td>
+      <td>Hebraicaymacabi</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>334</td>
+      <td>AKolender</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>117</td>
+      <td>alcaide943</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>131</td>
+      <td>carlosRocha1891</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>331</td>
+      <td>MSTM1215</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>108</td>
+      <td>daianab81</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>132</td>
+      <td>Macucha23</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>107</td>
+      <td>EduuCabrera19</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>159</td>
+      <td>DanielaBrandon</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Seleccionar el ID de los 10 nodos con más conexiones de entrada:
+
+
+```python
+resultsDegIn = cypher.run('MATCH (n:User)<--() \
+                           RETURN id(n) AS ID, n.screen_name AS NOMBRE, count(*) AS GRADO \
+                           ORDER BY GRADO DESC LIMIT 10', conn=connPar)
+
+resultsDegIn.dataframe
+
+```
+
+    10 rows affected.
+
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>GRADO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>203</td>
+      <td>Aguada_oficial</td>
+      <td>34</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>342</td>
+      <td>LUB_Uy</td>
+      <td>23</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>211</td>
+      <td>Hebraicaymacabi</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>204</td>
+      <td>RinconAguatero</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>108</td>
+      <td>daianab81</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>200</td>
+      <td>PasionAguatera</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>201</td>
+      <td>HAguatera</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>111</td>
+      <td>Somos_Aguada</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>424</td>
+      <td>elmarcadortv</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>335</td>
+      <td>alenb259</td>
+      <td>6</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Ver gráficos con los IDs con más conexiones de entrada:
+
+
+```python
+resultsInDeg = cypher.run('MATCH n=(a:User)<--() \
+                           WHERE a.screen_name = "Aguada_oficial" \
+                           OR a.screen_name = "LUB_Uy"\
+                           OR a.screen_name = "Hebraicaymacabi" \
+                           OR a.screen_name = "RinconAguatero" \
+                           RETURN n;', conn=connPar)
 
 # Create graph object from Neo4j
-#g = results.get_graph()
+gInDeg = resultsInDeg.get_graph()
+
+# View info
+print(nx.info(gInDeg))
+
+%matplotlib inline
+
+dInDeg = nx.degree(gInDeg)
+
+# Plot graph
+plt.axis("off")
+nx.draw_networkx(gInDeg, pos = spring_pos, with_labels = False, nodelist=dInDeg.keys(), node_size=[v * 20 for v in dInDeg.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in dInDeg.values()])
 ```
+
+    93 rows affected.
+    Name: 
+    Type: MultiDiGraph
+    Number of nodes: 81
+    Number of edges: 93
+    Average in degree:   1.1481
+    Average out degree:   1.1481
+
+
+
+![png](output_44_1.png)
+
+
+Ver gráficos con los IDs con más conexiones de salida:
+
+
+```python
+resultsOutDeg = cypher.run('MATCH n=(a:User)-->() \
+                            WHERE a.screen_name = "CesarGroba2016" \
+                            OR a.screen_name = "Hebraicaymacabi"\
+                            OR a.screen_name = "AKolender" \
+                            RETURN n;', conn=connPar)
+
+# Create graph object from Neo4j
+gOutDeg = resultsOutDeg.get_graph()
+
+# View info
+print(nx.info(gOutDeg))
+
+%matplotlib inline
+
+dOutDeg = nx.degree(gOutDeg)
+
+# Plot graph
+plt.axis("off")
+nx.draw_networkx(gOutDeg, pos = spring_pos, with_labels = False, nodelist=dOutDeg.keys(), node_size=[v * 20 for v in dOutDeg.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 20 for v in dOutDeg.values()])
+```
+
+    19 rows affected.
+    Name: 
+    Type: MultiDiGraph
+    Number of nodes: 22
+    Number of edges: 19
+    Average in degree:   0.8636
+    Average out degree:   0.8636
+
+
+
+![png](output_46_1.png)
+
 
 Detectar comunidades:
 
