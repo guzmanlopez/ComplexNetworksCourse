@@ -52,7 +52,9 @@ from random import choice
 from py2neo import authenticate, Graph
 import cypher
 import networkx as nx
+import matplotlib
 import matplotlib.pyplot as plt
+%matplotlib inline
 ```
 
 Autenticación de Twitter y Neo4j mediante la lectura de un archivo externo con las claves requeridas:
@@ -105,19 +107,20 @@ systemctl status neo4j.service
 
     ● neo4j.service - Neo4j
        Loaded: loaded (/usr/lib/systemd/system/neo4j.service; disabled; vendor preset: disabled)
-       Active: active (running) since Tue 2017-06-06 08:40:45 -03; 4ms ago
-      Process: 1486 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
-     Main PID: 1546 (java)
-        Tasks: 40 (limit: 4915)
-       Memory: 22.5M
-          CPU: 131ms
+       Active: active (running) since Tue 2017-06-06 21:15:53 -03; 3ms ago
+      Process: 11955 ExecStop=/usr/bin/neo4j stop (code=exited, status=0/SUCCESS)
+      Process: 12150 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
+     Main PID: 12210 (java)
+        Tasks: 52 (limit: 4915)
+       Memory: 8.4M
+          CPU: 119ms
        CGroup: /system.slice/neo4j.service
-               └─1546 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
+               └─12210 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
     
-    jun 06 08:40:45 carqueja systemd[1]: Starting Neo4j...
-    jun 06 08:40:45 carqueja neo4j[1486]: Starting Neo4j.
-    jun 06 08:40:45 carqueja neo4j[1486]: Started neo4j (pid 1546). By default, it is available at http://localhost:7474/
-    jun 06 08:40:45 carqueja systemd[1]: Started Neo4j.
+    jun 06 21:15:53 carqueja systemd[1]: Starting Neo4j...
+    jun 06 21:15:53 carqueja neo4j[12150]: Starting Neo4j.
+    jun 06 21:15:53 carqueja neo4j[12150]: Started neo4j (pid 12210). By default, it is available at http://localhost:7474/
+    jun 06 21:15:53 carqueja systemd[1]: Started Neo4j.
 
 
 Autenticación de la base de datos no relacional Neo4j a través de la lectura del archivo externo con las claves de usuario y contraseña requeridas leído anteriormente.
@@ -174,6 +177,62 @@ with open('/home/guzman/Documentos/GitLab/ComplexNetworks/Cypher/queries-in-scri
 print(query)
 ```
 
+    UNWIND {tweets} AS t
+    
+    WITH t
+    ORDER BY t.id
+    
+    WITH t,
+    t.entities AS e,
+    t.user AS u,
+    t.retweeted_status AS retweet
+    
+    MERGE (tweet:Tweet {id:t.id})
+    SET tweet.text = t.text,
+    tweet.created_at = t.created_at,
+    tweet.favorites = t.favorite_count
+    
+    MERGE (user:User {screen_name:u.screen_name})
+    SET user.name = u.name,
+    user.location = u.location,
+    user.followers = u.followers_count,
+    user.following = u.friends_count,
+    user.statuses = u.statuses_count,
+    user.profile_image_url = u.profile_image_url
+    
+    MERGE (user)-[:POSTS]->(tweet)
+    
+    MERGE (source:Source {name:t.source})
+    MERGE (tweet)-[:USING]->(source)
+    
+    FOREACH (h IN e.hashtags |
+      MERGE (tag:Hashtag {name:LOWER(h.text)})
+      MERGE (tag)-[:TAGS]->(tweet)
+      )
+    
+      FOREACH (u IN e.urls |
+        MERGE (url:Link {url:u.expanded_url})
+        MERGE (tweet)-[:CONTAINS]->(url)
+        )
+    
+        FOREACH (m IN e.user_mentions |
+          MERGE (mentioned:User {screen_name:m.screen_name})
+          ON CREATE SET mentioned.name = m.name
+          MERGE (tweet)-[:MENTIONS]->(mentioned)
+          )
+    
+          FOREACH (r IN [r IN [t.in_reply_to_status_id] WHERE r IS NOT NULL] |
+            MERGE (reply_tweet:Tweet {id:r})
+            MERGE (tweet)-[:REPLY_TO]->(reply_tweet)
+            )
+    
+            FOREACH (retweet_id IN [x IN [retweet.id] WHERE x IS NOT NULL] |
+              MERGE (retweet_tweet:Tweet {id:retweet_id})
+              MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
+              )
+    
+
+
 Definir los parámetros para la búsqueda de los tweets:
 
 
@@ -227,44 +286,6 @@ while True:
         continue
 ```
 
-Import graph to python
-
-
-```python
-# Import graph to python - queries
-# https://nicolewhite.github.io/neo4j-jupyter/hello-world.html
-
-# Return all the nodes in the DB
-# data = graph.run('')
-
-data = graph.run('MATCH usPostw=(:User)-[r:POSTS]->(:Tweet) \
-                  MATCH twRettw=(:Tweet)-[r2:RETWEETS]->(:Tweet) \
-                  MATCH twReptw=(:Tweet)-[r3:REPLY_TO]->(:Tweet) \
-                  MATCH twMenus=(:Tweet)-[r4:MENTIONS]->(:User) \
-                  RETURN usPostw,twRettw,twReptw,twMenus \
-                  LIMIT 10000;')
-
-data = [tuple(x) for x in data]
-
-# View first five graphs
-i = 0
-for i in range(0,5):
-    print(str(i + 1) + " - " + str(data[i]) + "\n")
-    i = i + 1
-```
-
-    1 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(e7d8479))
-    
-    2 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (f949b73)-[:MENTIONS]->(de94de1))
-    
-    3 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (b306a18)-[:MENTIONS]->(de94de1))
-    
-    4 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (e3cc96b)-[:MENTIONS]->(b91061a))
-    
-    5 - ((e7d8479)-[:POSTS]->(cf0a24e), (f949b73)-[:RETWEETS]->(b306a18), (e06876d)-[:REPLY_TO]->(a03511b), (bfc1894)-[:MENTIONS]->(b91061a))
-    
-
-
 Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su información:
 
 
@@ -277,8 +298,8 @@ Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su in
 #                      RETURN usPostw,twRettw,twReptw,twMenus \
 #                      LIMIT 100000;', conn=connPar)
 
-results = cypher.run('MATCH n=(:User)-[r]-() \
-                      RETURN n;', conn=connPar)
+results = cypher.run('MATCH (n:User)-[r]-(m:Tweet) \
+                      RETURN n,r,m;', conn=connPar)
 
 # Create graph object from Neo4j
 g = results.get_graph()
@@ -296,38 +317,39 @@ print(nx.info(g))
     Average out degree:   1.0995
 
 
-Graficar el objeto de grafos:
+Grafico simple del objeto de grafos:
 
 
 ```python
-%matplotlib inline
-
 # Create network layout for visualizations
 spring_pos = nx.spring_layout(g)
 
 # Plot graph
+matplotlib.rcParams['figure.figsize'] = (12, 12)
+
 plt.axis("off")
 nx.draw_networkx(g, pos = spring_pos, with_labels = False, node_size = 30)
-
 ```
 
 
-![png](output_31_0.png)
+![png](output_29_0.png)
 
+
+Gráfico del grafo donde el tamaño es directamente proporcional a la cantidad de conexiones de un nodo y así como también la escala de colores del azul al rojo:
 
 
 ```python
-%matplotlib inline
-
 d = nx.degree(g)
 
 # Plot graph
+matplotlib.rcParams['figure.figsize'] = (18, 18)
+
 plt.axis("off")
 nx.draw_networkx(g, pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 20 for v in d.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in d.values()])
 ```
 
 
-![png](output_32_0.png)
+![png](output_31_0.png)
 
 
 Ver nodos:
@@ -366,20 +388,34 @@ for i in range(0,5):
     5- ('0', '101', {'type': 'MENTIONS'})
 
 
+
+```python
+# Tipos de nodos (Usuarios y Tweets)
+
+# Count User nodes
+#resultsUserNodes = cypher.run('ALGO', conn=connPar)
+
+# Consulta networkx
+#fish2 = (n for n,d in G.nodes_iter(data=True) if d['label']=='fish')
+
+#resultsUserNodes.dataframe
+
+```
+
 Calcular principales métricas de los grafos:
 
 
 ```python
-# Tipe of graph
+# Tipo de grafo
 esMultigrafo = g.is_multigraph()
 esDireccional = g.is_directed()
 esConectado = nx.is_connected(g.to_undirected())
 
-# Number of nodes and edges
+# Número de nodos y conexiones
 numNod = nx.number_of_nodes(g)
 numEdg = nx.number_of_edges(g)
 
-# Degrees (max, min, mean)
+# Grados de un nodo (máximo, mínimo, promedio)
 deg = nx.degree(g)
 in_degrees  = g.in_degree()
 out_degrees  = g.out_degree()
@@ -387,46 +423,26 @@ out_degrees  = g.out_degree()
 # Componentes conectados
 if not esConectado:
     g2 = g.to_undirected() # saco direccionalidad
-    g3 = nx.connected_components(g2) # me quedo con componentes conectados
 
-conComp = nx.number_connected_components(g2)
-
-g2_components = nx.connected_component_subgraphs(g2)
-
-# Componentes conexas
-#cns = nx.connected_components(g)
-
-# Diámetro
-#d = nx.diameter(g)
-
-# Excentricidad
-#ecc = nx.eccentricity(g)
-
-# Centro
-#cen = nx.center(g)
-
-# Periferia
-#per = nx.periphery(g)
-
-# Transistividad
-#tr = nx.transitivity(g)
+# Número de componentes conectados
+numConComp = nx.number_connected_components(g2)
 
 # Resumen
 print("| -------------------------------------------- |")
 if esMultigrafo:
-    print("| Tipo de grafo: multigrafo") 
+    print("| Tipo de grafo: Multigrafo") 
 if  not esMultigrafo: 
-    print("| Tipo de grafo: simple")
+    print("| Tipo de grafo: Simple")
 
 if esDireccional:
-    print("| Direccional: si") 
+    print("| Direccional: Si") 
 if  not esDireccional: 
-    print("| Direccional: no")
+    print("| Direccional: No")
 
 if esConectado:
-    print("| Conectado: si") 
+    print("| Conectado: Si") 
 if  not esConectado: 
-    print("| Conectado: no")
+    print("| Conectado: No")
 print("| -------------------------------------------- |")
 print("| Número de nodos:", str(numNod))
 print("| Número de conexiones:", str(numEdg))
@@ -443,20 +459,14 @@ print("| Grado máximo (no dir):", str(max(deg.values())))
 print("| Grado mínimo (no dir):", str(min(deg.values())))
 print("| Grado promedio (no dir):", str(sum(deg.values())/len(deg.values())))
 print("| -------------------------------------------- |")
-print("| Número de componentes conectados: %d" % nx.number_connected_components(g2))
-
-#print("| Radio: %d" % nx.radius(g))
-#print("| Diámetro: %d" % nx.diameter(g))
-#print("| Excentricidad: %s" % nx.eccentricity(g))
-#print("| Centro: %s" % center(g))
-#print("| Periferia: %s" % periphery(g))
-#print("| Densidad: %s" % density(g))
+print("| Número total de componentes conectados: %d" % nx.number_connected_components(g2))
+print("| -------------------------------------------- |")
 ```
 
     | -------------------------------------------- |
-    | Tipo de grafo: multigrafo
-    | Direccional: si
-    | Conectado: no
+    | Tipo de grafo: Multigrafo
+    | Direccional: Si
+    | Conectado: No
     | -------------------------------------------- |
     | Número de nodos: 402
     | Número de conexiones: 442
@@ -473,7 +483,92 @@ print("| Número de componentes conectados: %d" % nx.number_connected_components
     | Grado mínimo (no dir): 1
     | Grado promedio (no dir): 2.199004975124378
     | -------------------------------------------- |
-    | Número de componentes conectados: 45
+    | Número total de componentes conectados: 45
+    | -------------------------------------------- |
+
+
+Métricas en los subgrafos:
+
+
+```python
+# Subgrafos de componentes conectados
+g2_conComp = list(nx.connected_component_subgraphs(g2))
+
+# Definir función con las métricas adentro
+def metricas_subgrafos(subgrafo):
+    
+    # crear diccionario vacío
+    dict = {}
+    
+    # métricas
+    numNodos = nx.number_of_nodes(subgrafo) # número de nodos
+    numConex = nx.number_of_edges(subgrafo) # número de conexiones
+    grados = nx.degree(subgrafo) # grados
+    diametro = nx.diameter(subgrafo) # diámetro
+    radio = nx.radius(subgrafo) # radio
+    excentricidad = nx.eccentricity(subgrafo) # excentricidad
+    centro = nx.center(subgrafo) # centro
+    periferia = nx.periphery(subgrafo) # periferia
+    densidad = nx.density(subgrafo) # densidad
+    
+    # agregar métricas al diccionario
+    dict['nodos'] = numNodos
+    dict['conexiones'] = numConex
+    dict['grados'] = grados
+    dict['diámetro'] = diametro
+    dict['radio'] = radio
+    dict['excentricidad'] = excentricidad
+    dict['centro'] = centro
+    dict['periferia'] = periferia
+    dict['densidad'] = densidad
+    
+    # retorno
+    return dict
+
+# Aplicar función metricas_subgrafos a todos los subgrafos
+listaMetSubg = []
+
+for subg in g2_conComp:
+    subgMet = metricas_subgrafos(subg)
+    listaMetSubg.append(subgMet)
+
+# Ver métricas y plot del primer subgrafo
+import pandas as pd
+
+myDict = listaMetSubg[14]
+df = pd.DataFrame()
+df['Parámetro'] = myDict.keys()
+df['Valores'] = myDict.values()
+
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print(df)
+print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
+# Grados subgrafo
+d = nx.degree(g2_conComp[14])
+
+# Plot subgrafo
+matplotlib.rcParams['figure.figsize'] = (10, 10)
+plt.axis("off")
+nx.draw_networkx(g2_conComp[14], pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 40 for v in d.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in d.values()])
+```
+
+    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+           Parámetro                                          Valores
+    0          nodos                                                5
+    1     conexiones                                                4
+    2         grados  {'164': 1, '92': 2, '128': 3, '35': 1, '89': 1}
+    3       diámetro                                                3
+    4          radio                                                2
+    5  excentricidad  {'164': 3, '92': 2, '128': 2, '35': 3, '89': 3}
+    6         centro                                        [92, 128]
+    7      periferia                                    [164, 35, 89]
+    8       densidad                                              0.4
+    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+![png](output_40_1.png)
 
 
 Seleccionar el ID de los 10 nodos con más conexiones de salida:
@@ -698,20 +793,20 @@ Ver gráficos con los IDs con más conexiones de entrada:
 
 
 ```python
-resultsInDeg = cypher.run('MATCH n=(a:User)<--() \
-                           WHERE a.screen_name = "Aguada_oficial" \
-                           OR a.screen_name = "LUB_Uy"\
-                           OR a.screen_name = "Hebraicaymacabi" \
-                           OR a.screen_name = "RinconAguatero" \
-                           RETURN n;', conn=connPar)
+matplotlib.rcParams['figure.figsize'] = (12, 12)
+
+resultsInDeg = cypher.run('MATCH a=(n:User)<-[r]-(m:Tweet) \
+                           WHERE n.screen_name = "Aguada_oficial" \
+                           OR n.screen_name = "LUB_Uy"\
+                           OR n.screen_name = "Hebraicaymacabi" \
+                           OR n.screen_name = "RinconAguatero" \
+                           RETURN a;', conn=connPar)
 
 # Create graph object from Neo4j
 gInDeg = resultsInDeg.get_graph()
 
 # View info
 print(nx.info(gInDeg))
-
-%matplotlib inline
 
 dInDeg = nx.degree(gInDeg)
 
@@ -730,26 +825,26 @@ nx.draw_networkx(gInDeg, pos = spring_pos, with_labels = False, nodelist=dInDeg.
 
 
 
-![png](output_44_1.png)
+![png](output_46_1.png)
 
 
 Ver gráficos con los IDs con más conexiones de salida:
 
 
 ```python
-resultsOutDeg = cypher.run('MATCH n=(a:User)-->() \
-                            WHERE a.screen_name = "CesarGroba2016" \
-                            OR a.screen_name = "Hebraicaymacabi"\
-                            OR a.screen_name = "AKolender" \
-                            RETURN n;', conn=connPar)
+matplotlib.rcParams['figure.figsize'] = (12, 12)
+
+resultsOutDeg = cypher.run('MATCH a=(n:User)-[r]->(m:Tweet) \
+                            WHERE n.screen_name = "CesarGroba2016" \
+                            OR n.screen_name = "Hebraicaymacabi"\
+                            OR n.screen_name = "AKolender" \
+                            RETURN a;', conn=connPar)
 
 # Create graph object from Neo4j
 gOutDeg = resultsOutDeg.get_graph()
 
 # View info
 print(nx.info(gOutDeg))
-
-%matplotlib inline
 
 dOutDeg = nx.degree(gOutDeg)
 
@@ -768,19 +863,138 @@ nx.draw_networkx(gOutDeg, pos = spring_pos, with_labels = False, nodelist=dOutDe
 
 
 
-![png](output_46_1.png)
+![png](output_48_1.png)
 
 
-Detectar comunidades:
+Seleccionar todas las palabras de los tweets del nodo más conectado para construir una nube de palabras:
 
 
 ```python
-import community
+resultsText = cypher.run('MATCH a=(n:User)-[r]-(m:Tweet) \
+                          WHERE n.screen_name = "Aguada_oficial" \
+                          RETURN DISTINCT(m.text);', conn=connPar)
 
-#parts = community.best_partition(g2)
-#values = [parts.get(node) for node in g.nodes()]
-
-#plt.axis("off")
-#nx.draw_networkx(g, pos = spring_pos, cmap = plt.get_cmap("jet"), node_color = values, node_size = 35, with_labels = False)
+resultsText.dataframe
 
 ```
+
+    16 rows affected.
+
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>(m.text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>RT @Mariog64: @Aguada_oficial @URUGUAYLATECAP ...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>@cherrera88 @Aguada_oficial Eeeeeeeeee paaaara...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Es hoy #Juntosporlanovena 🙌🏼🙌🏼🙌🏼 @Aguada_ofici...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Y acá estamos! Vamos nosotros carajooo!!! #jun...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>RT @Castro_AnaLaura: Es hoy #Juntosporlanovena...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>40' para el salto inicial @Aguada_oficial vs @...</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Es hoy @Aguada_oficial !!! Vamo arriba !! 💪🏽 \...</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Es hoy @Aguada_oficial ! #JuntosPorLaNovena #a...</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Es hoy!!! Trato de concentrarme en el trabajo ...</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Ya no puedo mas... Tiene que ser hoy!!! #Junto...</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>RT @Colet12: Cuando tu amiga hace la fila xa e...</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>RT @Titotimothytim: Ya no puedo mas... Tiene q...</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>RT @daianab81: A Palacio y Estadio Propio llen...</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>ES HOY @Aguada_oficial 💚❤️\n#juntosporlanovena</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>Que mejor que empezar esta mañana de esta form...</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>A Palacio y Estadio Propio lleno!!! Así se viv...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Construir nube de palabras:
+
+
+```python
+from wordcloud import WordCloud, STOPWORDS
+matplotlib.rcParams['figure.figsize'] = (15, 15)
+
+#Convert all the required text into a single string here and store them in word_string
+# you can specify fonts, stopwords, background color and other options
+
+word_string = str(resultsText)
+
+wordcloud = WordCloud(stopwords=STOPWORDS, max_font_size=50, background_color='white')
+wordcloud.generate(word_string)
+
+plt.imshow(wordcloud)
+plt.axis('off')
+plt.show()
+```
+
+
+![png](output_52_0.png)
