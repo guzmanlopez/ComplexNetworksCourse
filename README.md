@@ -17,8 +17,12 @@ sudo cp -v /graphdb/* /var/lib/neo4j/data/databases/graph.db/
 
 ```
 
-
 # Análisis de la red de *tweets* y usuarios relacionados con la final de la Liga Uruguaya de Basketball (LUB).
+
+
+
+
+
 
 ## Trabajo final del curso "De las redes complejas a las redes sociales: Introducción al Uso del Big Data"
 
@@ -41,7 +45,7 @@ En el marco del curso ...
 
 Se utilizó el lenguaje de programación Python (versión 3.6.1) ...
 
-Importar librerías 
+### Importar librerías 
 
 
 ```python
@@ -57,7 +61,7 @@ import matplotlib.pyplot as plt
 %matplotlib inline
 ```
 
-Autenticación de Twitter y Neo4j mediante la lectura de un archivo externo con las claves requeridas:
+### Autenticación de Twitter y Neo4j mediante la lectura de un archivo externo con las claves requeridas:
 
 
 ```python
@@ -84,7 +88,7 @@ with open('/home/guzman/Documentos/Cursos/Redes Complejas - Introducción al uso
     exec(oauth.read())
 ```
 
-Crear la API (Application Program Interface) de Twitter:
+### Crear la API (Application Program Interface) de Twitter:
 
 
 ```python
@@ -92,7 +96,7 @@ Crear la API (Application Program Interface) de Twitter:
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
 ```
 
-Comenzar el servicio de la base de datos Neo4j desde una consola:
+### Comenzar el servicio de la base de datos Neo4j desde una consola:
 
 
 ```python
@@ -107,23 +111,22 @@ systemctl status neo4j.service
 
     ● neo4j.service - Neo4j
        Loaded: loaded (/usr/lib/systemd/system/neo4j.service; disabled; vendor preset: disabled)
-       Active: active (running) since Tue 2017-06-06 21:15:53 -03; 3ms ago
-      Process: 11955 ExecStop=/usr/bin/neo4j stop (code=exited, status=0/SUCCESS)
-      Process: 12150 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
-     Main PID: 12210 (java)
-        Tasks: 52 (limit: 4915)
-       Memory: 8.4M
-          CPU: 119ms
+       Active: active (running) since Wed 2017-06-07 13:22:51 -03; 4ms ago
+      Process: 2687 ExecStart=/usr/bin/neo4j start (code=exited, status=0/SUCCESS)
+     Main PID: 2747 (java)
+        Tasks: 37 (limit: 4915)
+       Memory: 22.2M
+          CPU: 130ms
        CGroup: /system.slice/neo4j.service
-               └─12210 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
+               └─2747 /usr/sbin/java -cp /usr/share/java/neo4j/plugins:/etc/neo4j:/usr/share/java/neo4j/*:/usr/share/java/neo4j/plugins/* -server -XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5 -XX:+AlwaysPreTouch -XX:+UnlockExperimentalVMOptions -XX:+TrustFinalNonStaticFields -XX:+DisableExplicitGC -Djdk.tls.ephemeralDHKeySize=2048 -Dunsupported.dbms.udc.source=tarball -Dfile.encoding=UTF-8 org.neo4j.server.CommunityEntryPoint --home-dir=/usr/share/neo4j --config-dir=/etc/neo4j
     
-    jun 06 21:15:53 carqueja systemd[1]: Starting Neo4j...
-    jun 06 21:15:53 carqueja neo4j[12150]: Starting Neo4j.
-    jun 06 21:15:53 carqueja neo4j[12150]: Started neo4j (pid 12210). By default, it is available at http://localhost:7474/
-    jun 06 21:15:53 carqueja systemd[1]: Started Neo4j.
+    jun 07 13:22:51 carqueja systemd[1]: Starting Neo4j...
+    jun 07 13:22:51 carqueja neo4j[2687]: Starting Neo4j.
+    jun 07 13:22:51 carqueja neo4j[2687]: Started neo4j (pid 2747). By default, it is available at http://localhost:7474/
+    jun 07 13:22:51 carqueja systemd[1]: Started Neo4j.
 
 
-Autenticación de la base de datos no relacional Neo4j a través de la lectura del archivo externo con las claves de usuario y contraseña requeridas leído anteriormente.
+### Autenticación de la base de datos no relacional Neo4j a través de la lectura del archivo externo con las claves de usuario y contraseña requeridas leído anteriormente.
 
 
 ```python
@@ -138,7 +141,7 @@ graph = Graph(url)
 connPar = "http://" + neo4jUser + ":" + neo4jPass + "@localhost:7474/db/data/"
 ```
 
-Agregar restricciones de unicidad a la base de datos:
+### Agregar restricciones de unicidad a la base de datos:
 
 
 ```python
@@ -150,7 +153,7 @@ graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
 graph.run("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 ```
 
-Construir una lista con las palabras clave para la búsqueda de tweets:
+### Construir una lista con las palabras clave para la búsqueda de tweets:
 
 
 ```python
@@ -158,7 +161,7 @@ Construir una lista con las palabras clave para la búsqueda de tweets:
 queries = ["aguada", "aguatero", "hebraica", "macabi", "finalesLUB", "juntosporlanovena", "vamossha", "finaleslub"]
 ```
 
-Crear un archivo de texto vacío para adjuntar (escribir) los nombres de los usuarios de los tweets encontrados:
+### Crear un archivo de texto vacío para adjuntar (escribir) los nombres de los usuarios de los tweets encontrados:
 
 
 ```python
@@ -166,7 +169,7 @@ Crear un archivo de texto vacío para adjuntar (escribir) los nombres de los usu
 ufile = open("usernames_{}.txt".format("aguada-hebraica"), "a")
 ```
 
-Cargar script de comandos en Cypher como cadena de caracteres
+### Cargar script de comandos en Cypher como cadena de caracteres
 
 
 ```python
@@ -233,7 +236,7 @@ print(query)
     
 
 
-Definir los parámetros para la búsqueda de los tweets:
+### Definir los parámetros para la búsqueda de los tweets:
 
 
 ```python
@@ -245,7 +248,7 @@ lang = "es" # Restricts tweets to the given language
 since_id = -1 # Returns results with an ID greater than (that is, more recent than) the specified ID.
 ```
 
-Definir una función para la búsqueda de tweets que contiene la función de búsqueda de tweets de la librería tweepy y recibe como parámetros las palabras clave de búsqueda y el ID.
+### Definir una función para la búsqueda de tweets que contiene la función de búsqueda de tweets de la librería tweepy y recibe como parámetros las palabras clave de búsqueda y el ID.
 
 
 ```python
@@ -253,7 +256,7 @@ def search_tweets(query, since_id):
     return api.search(q=query, count=count, until=until, result_type=result_type, lang=lang, since_id=since_id)
 ```
 
-Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j. 
+### Iterar buscando tweets a partir de las palabras claves en la búsqueda y ejecutando el código importado en Cypher para insertar los registros en la base de datos no relacional de Neo4j. 
 
 
 ```python
@@ -286,7 +289,7 @@ while True:
         continue
 ```
 
-Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su información:
+### Crear objeto de grafos a partir de consulta a la base de datos Neo4j y ver su información:
 
 
 ```python
@@ -317,7 +320,7 @@ print(nx.info(g))
     Average out degree:   1.0995
 
 
-Grafico simple del objeto de grafos:
+### Grafico simple del objeto de grafos:
 
 
 ```python
@@ -328,14 +331,14 @@ spring_pos = nx.spring_layout(g)
 matplotlib.rcParams['figure.figsize'] = (12, 12)
 
 plt.axis("off")
-nx.draw_networkx(g, pos = spring_pos, with_labels = False, node_size = 30)
+nx.draw_networkx(g, pos = spring_pos, with_labels = False, node_size = 20)
 ```
 
 
 ![png](output_29_0.png)
 
 
-Gráfico del grafo donde el tamaño es directamente proporcional a la cantidad de conexiones de un nodo y así como también la escala de colores del azul al rojo:
+### Gráfico del grafo donde el tamaño es directamente proporcional a la cantidad de conexiones de un nodo y así como también la escala de colores del azul al rojo:
 
 
 ```python
@@ -345,14 +348,14 @@ d = nx.degree(g)
 matplotlib.rcParams['figure.figsize'] = (18, 18)
 
 plt.axis("off")
-nx.draw_networkx(g, pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 20 for v in d.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in d.values()])
+nx.draw_networkx(g, pos = spring_pos, with_labels = True, nodelist=d.keys(), node_size=[v * 50 for v in d.values()])
 ```
 
 
 ![png](output_31_0.png)
 
 
-Ver nodos:
+### Ver nodos:
 
 
 ```python
@@ -370,7 +373,7 @@ for i in range(0,5):
     5- ('101', {'followers': 24, 'screen_name': 'sandynyordi', 'following': 183, 'name': '° SANDY ☆', 'statuses': 193, 'profile_image_url': 'http://pbs.twimg.com/profile_images/869902165720039425/hxWQH2WE_normal.jpg', 'location': '', 'labels': ['User']})
 
 
-Ver ejes:
+### Ver ejes:
 
 
 ```python
@@ -402,7 +405,7 @@ for i in range(0,5):
 
 ```
 
-Calcular principales métricas de los grafos:
+### Calcular principales métricas sobre el grafo total:
 
 
 ```python
@@ -487,7 +490,7 @@ print("| -------------------------------------------- |")
     | -------------------------------------------- |
 
 
-Métricas en los subgrafos:
+### Análisis sobre los componentes conectados, métricas en los subgrafos:
 
 
 ```python
@@ -504,6 +507,9 @@ def metricas_subgrafos(subgrafo):
     numNodos = nx.number_of_nodes(subgrafo) # número de nodos
     numConex = nx.number_of_edges(subgrafo) # número de conexiones
     grados = nx.degree(subgrafo) # grados
+    maxGrado = max(grados.values()) # grado max
+    minGrado = min(grados.values()) # grado min
+    promGrado = sum(grados.values())/len(grados.values())
     diametro = nx.diameter(subgrafo) # diámetro
     radio = nx.radius(subgrafo) # radio
     excentricidad = nx.eccentricity(subgrafo) # excentricidad
@@ -515,6 +521,9 @@ def metricas_subgrafos(subgrafo):
     dict['nodos'] = numNodos
     dict['conexiones'] = numConex
     dict['grados'] = grados
+    dict['maxgrado'] = maxGrado
+    dict['mingrado'] = minGrado
+    dict['promGrado'] = promGrado
     dict['diámetro'] = diametro
     dict['radio'] = radio
     dict['excentricidad'] = excentricidad
@@ -540,44 +549,47 @@ df = pd.DataFrame()
 df['Parámetro'] = myDict.keys()
 df['Valores'] = myDict.values()
 
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 print(df)
-print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 
 # Grados subgrafo
 d = nx.degree(g2_conComp[14])
 
 # Plot subgrafo
-matplotlib.rcParams['figure.figsize'] = (10, 10)
+matplotlib.rcParams['figure.figsize'] = (5, 5)
 plt.axis("off")
-nx.draw_networkx(g2_conComp[14], pos = spring_pos, with_labels = False, nodelist=d.keys(), node_size=[v * 40 for v in d.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in d.values()])
+nx.draw_networkx(g2_conComp[14], pos = spring_pos, with_labels = True, nodelist=d.keys(), node_size=[v * 100 for v in d.values()])
 ```
 
-    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-           Parámetro                                          Valores
-    0          nodos                                                5
-    1     conexiones                                                4
-    2         grados  {'164': 1, '92': 2, '128': 3, '35': 1, '89': 1}
-    3       diámetro                                                3
-    4          radio                                                2
-    5  excentricidad  {'164': 3, '92': 2, '128': 2, '35': 3, '89': 3}
-    6         centro                                        [92, 128]
-    7      periferia                                    [164, 35, 89]
-    8       densidad                                              0.4
-    +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            Parámetro                                          Valores
+    0           nodos                                                5
+    1      conexiones                                                4
+    2          grados  {'35': 1, '128': 3, '164': 1, '92': 2, '89': 1}
+    3        maxgrado                                                3
+    4        mingrado                                                1
+    5       promGrado                                              1.6
+    6        diámetro                                                3
+    7           radio                                                2
+    8   excentricidad  {'35': 3, '128': 2, '164': 3, '92': 2, '89': 3}
+    9          centro                                        [128, 92]
+    10      periferia                                    [35, 164, 89]
+    11       densidad                                              0.4
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 
 ![png](output_40_1.png)
 
 
-Seleccionar el ID de los 10 nodos con más conexiones de salida:
+### Seleccionar el id, nombre y grado de los 10 nodos con más conexiones de salida:
 
 
 ```python
 # Select most output connected nodes
 
-resultsDegOut = cypher.run('MATCH (n:User)-->() \
+resultsDegOut = cypher.run('MATCH (n:User)-[r]->(m:Tweet) \
                             RETURN id(n) AS ID, n.screen_name AS NOMBRE, count(*) AS GRADO \
                             ORDER BY GRADO DESC LIMIT 10', conn=connPar)
 
@@ -681,11 +693,11 @@ resultsDegOut.dataframe
 
 
 
-Seleccionar el ID de los 10 nodos con más conexiones de entrada:
+### Seleccionar el id, nombre y grado de los 10 nodos con más conexiones de entrada:
 
 
 ```python
-resultsDegIn = cypher.run('MATCH (n:User)<--() \
+resultsDegIn = cypher.run('MATCH (n:User)<-[r]-(m:Tweet) \
                            RETURN id(n) AS ID, n.screen_name AS NOMBRE, count(*) AS GRADO \
                            ORDER BY GRADO DESC LIMIT 10', conn=connPar)
 
@@ -789,7 +801,7 @@ resultsDegIn.dataframe
 
 
 
-Ver gráficos con los IDs con más conexiones de entrada:
+### Ver gráficos con los IDs con más conexiones de entrada:
 
 
 ```python
@@ -812,7 +824,7 @@ dInDeg = nx.degree(gInDeg)
 
 # Plot graph
 plt.axis("off")
-nx.draw_networkx(gInDeg, pos = spring_pos, with_labels = False, nodelist=dInDeg.keys(), node_size=[v * 20 for v in dInDeg.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 10 for v in dInDeg.values()])
+nx.draw_networkx(gInDeg, pos = spring_pos, with_labels = True, nodelist=dInDeg.keys(), node_size=[v * 50 for v in dInDeg.values()])
 ```
 
     93 rows affected.
@@ -828,12 +840,10 @@ nx.draw_networkx(gInDeg, pos = spring_pos, with_labels = False, nodelist=dInDeg.
 ![png](output_46_1.png)
 
 
-Ver gráficos con los IDs con más conexiones de salida:
+### Ver gráficos con los IDs con más conexiones de salida:
 
 
 ```python
-matplotlib.rcParams['figure.figsize'] = (12, 12)
-
 resultsOutDeg = cypher.run('MATCH a=(n:User)-[r]->(m:Tweet) \
                             WHERE n.screen_name = "CesarGroba2016" \
                             OR n.screen_name = "Hebraicaymacabi"\
@@ -849,8 +859,9 @@ print(nx.info(gOutDeg))
 dOutDeg = nx.degree(gOutDeg)
 
 # Plot graph
+matplotlib.rcParams['figure.figsize'] = (5, 5)
 plt.axis("off")
-nx.draw_networkx(gOutDeg, pos = spring_pos, with_labels = False, nodelist=dOutDeg.keys(), node_size=[v * 20 for v in dOutDeg.values()], cmap=plt.get_cmap('nipy_spectral_r'), node_color=[v * 20 for v in dOutDeg.values()])
+nx.draw_networkx(gOutDeg, pos = spring_pos, with_labels = True, nodelist=dOutDeg.keys(), node_size=[v * 100 for v in dOutDeg.values()])
 ```
 
     19 rows affected.
@@ -866,20 +877,192 @@ nx.draw_networkx(gOutDeg, pos = spring_pos, with_labels = False, nodelist=dOutDe
 ![png](output_48_1.png)
 
 
-Seleccionar todas las palabras de los tweets del nodo más conectado para construir una nube de palabras:
+### Seleccionar el id, nombre y grado de los 10 nodos con más conexiones (entrada y salida):
 
 
 ```python
-resultsText = cypher.run('MATCH a=(n:User)-[r]-(m:Tweet) \
+resultsDeg = cypher.run('MATCH (n:User)-[r]-(m:Tweet) \
+                         RETURN id(n) AS ID, n.screen_name AS NOMBRE, count(*) AS GRADO \
+                         ORDER BY GRADO DESC LIMIT 10', conn=connPar)
+
+resultsDeg.dataframe
+
+```
+
+    10 rows affected.
+
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>ID</th>
+      <th>NOMBRE</th>
+      <th>GRADO</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>203</td>
+      <td>Aguada_oficial</td>
+      <td>34</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>211</td>
+      <td>Hebraicaymacabi</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>342</td>
+      <td>LUB_Uy</td>
+      <td>24</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>204</td>
+      <td>RinconAguatero</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>108</td>
+      <td>daianab81</td>
+      <td>15</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>200</td>
+      <td>PasionAguatera</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>111</td>
+      <td>Somos_Aguada</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>201</td>
+      <td>HAguatera</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>155</td>
+      <td>Castro_AnaLaura</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>335</td>
+      <td>alenb259</td>
+      <td>7</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+### Ver gráficos con los IDs con más conexiones (entrada y salida):
+
+
+```python
+resultsInOutDeg = cypher.run('MATCH a=(n:User)-[r]-(m:Tweet) \
+                              WHERE n.screen_name = "CesarGroba2016" \
+                              OR n.screen_name = "Hebraicaymacabi"\
+                              OR n.screen_name = "AKolender" \
+                              RETURN a;', conn=connPar)
+
+# Create graph object from Neo4j
+gInOutDeg = resultsOutDeg.get_graph()
+
+# View info
+print(nx.info(gInOutDeg))
+
+dInOutDeg = nx.degree(gInOutDeg)
+
+# Plot graph
+matplotlib.rcParams['figure.figsize'] = (6, 6)
+plt.axis("off")
+nx.draw_networkx(gInOutDeg, pos = spring_pos, with_labels = True, nodelist=dInOutDeg.keys(), node_size=[v * 100 for v in dInOutDeg.values()])
+```
+
+    39 rows affected.
+    Name: 
+    Type: MultiDiGraph
+    Number of nodes: 22
+    Number of edges: 19
+    Average in degree:   0.8636
+    Average out degree:   0.8636
+
+
+
+![png](output_52_1.png)
+
+
+### Seleccionar todas las palabras de los tweets de los dos nodos más conectados para construir una nube de palabras:
+
+
+```python
+# Nodo más conectado
+resultsText1 = cypher.run('MATCH a=(n:User)-[r]-(m:Tweet) \
                           WHERE n.screen_name = "Aguada_oficial" \
                           RETURN DISTINCT(m.text);', conn=connPar)
 
-resultsText.dataframe
+# Open file connection to append resultsText
+textAguadaOficial = open("AguadaOficialTweetText.txt", "a")
+textAguadaOficial.write(str(resultsText1)+"/n")
+
+# Segundo nodo más conectado
+resultsText2 = cypher.run('MATCH a=(n:User)-[r]-(m:Tweet) \
+                          WHERE n.screen_name = "Hebraicaymacabi" \
+                          RETURN DISTINCT(m.text);', conn=connPar)
+
+# Open file connection to append resultsText
+textHebraicaymacabi = open("HebraicaymacabiTweetText.txt", "a")
+textHebraicaymacabi.write(str(resultsText2)+"/n")
 
 ```
 
     16 rows affected.
+    16 rows affected.
 
+
+
+
+
+    3191
+
+
+
+Ver nodo más conectado:
+
+
+```python
+resultsText1.dataframe
+```
 
 
 
@@ -976,7 +1159,109 @@ resultsText.dataframe
 
 
 
-Construir nube de palabras:
+Ver segundo nodo más conectado:
+
+
+```python
+resultsText2.dataframe
+```
+
+
+
+
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>(m.text)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>RT @Hebraicaymacabi: La gloria: ¡MacaBI! ¡HACI...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>RT @hundilacom: Crónica de la victoria de @Heb...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>RT @Hebraicaymacabi: Sacamos 26! Abrazate! Hac...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>RT @susanarosano1: @Hebraicaymacabi Felicitaci...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>RT @Hebraicaymacabi: Final! Ganó Macabi 82 a 5...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>RT @MarioNBarbato: @OPetinatti @Hebraicaymacab...</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>RT @abifitcoach: @OPetinatti @Hebraicaymacabi ...</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>RT @Mariog64: @Aguada_oficial @URUGUAYLATECAP ...</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>RT @dobleyfalta_uy: #LUB | las mejores imágene...</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>@Hebraicaymacabi MacaBI CAMPEÓN! Que huevo Heb...</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>RT @mago1377: @Hebraicaymacabi si señor un equ...</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>RT @Basketbol1010: los campeones Hebraica Maca...</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>La gloria: ¡MacaBI! ¡HACIENDO HISTORIA! https:...</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>RT @ElAguanteUy: Hebraica Macabi ganó la LUB y...</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>RT @LUB_Uy: Video Clip de la 7ma FINAL de LUB ...</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>40' para el salto inicial @Aguada_oficial vs @...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+### Construir nube de palabras:
 
 
 ```python
@@ -986,15 +1271,48 @@ matplotlib.rcParams['figure.figsize'] = (15, 15)
 #Convert all the required text into a single string here and store them in word_string
 # you can specify fonts, stopwords, background color and other options
 
-word_string = str(resultsText)
+word_string1 = str(resultsText1)
+word_string2 = str(resultsText2)
 
-wordcloud = WordCloud(stopwords=STOPWORDS, max_font_size=50, background_color='white')
-wordcloud.generate(word_string)
+wordcloud1 = WordCloud(stopwords=STOPWORDS, max_font_size=50, background_color='white')
+wordcloud1.generate(word_string1)
 
-plt.imshow(wordcloud)
+wordcloud2 = WordCloud(stopwords=STOPWORDS, max_font_size=50, background_color='white')
+wordcloud2.generate(word_string2)
+```
+
+### Eliminar palabras no deseadas:
+
+
+```python
+noise_words_set = {'https', 'Aguada_oficial', 'Hebraicaymacabi'}
+
+stuff = [' '.join(w for w in word_string1.split() if w.lower() not in noise_words_set)
+         for word_string1 in word_string1]
+
+print(stuff)
+```
+
+    ['+', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '+', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '(', 'm', '.', 't', 'e', 'x', 't', ')', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '+', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '+', '', '|', '', 'R', 'T', '', '@', 'M', 'a', 'r', 'i', 'o', 'g', '6', '4', ':', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'U', 'R', 'U', 'G', 'U', 'A', 'Y', 'L', 'A', 'T', 'E', 'C', 'A', 'P', '', '@', 'H', 'e', 'b', 'r', 'a', 'i', 'c', 'a', 'y', 'm', 'a', 'c', 'a', 'b', 'i', '', 'S', 'a', 'l', 'u', 'd', '', 'M', 'a', 'c', 'a', 'b', 'i', '', 'y', '', 'u', 'n', '', '👏', '👏', '', 'g', 'r', 'a', 'n', 'd', 'e', '', 'p', 'a', 'r', 'a', '', 'A', 'g', 'u', 'a', 'd', 'a', '', ',', '', 'd', 'e', '', 'u', 'n', '', 'g', 'o', 'e', 'n', 's', 'e', '', 'd', 'e', '', 'l', 'e', 'y', '', '!', '!', '', 'M', 'u', 'y', '', 'b', 'u', 'e', 'n', 'a', '', 's', '…', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '@', 'c', 'h', 'e', 'r', 'r', 'e', 'r', 'a', '8', '8', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', 'E', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', '', 'p', 'a', 'a', 'a', 'a', 'r', 'a', '', 'u', 'n', '', 'p', 'o', 'c', 'o', '', 'g', 'u', 'a', 'c', 'h', 'i', 'n', 'n', 'n', 'n', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '😂', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'E', 's', '', 'h', 'o', 'y', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '🙌', '🏼', '🙌', '🏼', '🙌', '🏼', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '💚', '❤', '️', '💚', '❤', '️', '💚', '❤', '️', '🏀', '🏀', '🏀', '🏀', '🏀', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', 'Y', '', 'a', 'c', 'á', '', 'e', 's', 't', 'a', 'm', 'o', 's', '!', '', 'V', 'a', 'm', 'o', 's', '', 'n', 'o', 's', 'o', 't', 'r', 'o', 's', '', 'c', 'a', 'r', 'a', 'j', 'o', 'o', 'o', '!', '!', '!', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'P', 'a', 's', 'i', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', '@', 'S', 'o', 'm', 'o', 's', '_', 'A', 'g', 'u', 'a', 'd', 'a', '…', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'C', 'n', 'P', 'x', 'b', 'u', 'p', '7', 'c', 'F', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'R', 'T', '', '@', 'C', 'a', 's', 't', 'r', 'o', '_', 'A', 'n', 'a', 'L', 'a', 'u', 'r', 'a', ':', '', 'E', 's', '', 'h', 'o', 'y', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '🙌', '🏼', '🙌', '🏼', '🙌', '🏼', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '💚', '❤', '️', '💚', '❤', '️', '💚', '❤', '️', '🏀', '🏀', '🏀', '🏀', '🏀', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '4', '0', "'", '', 'p', 'a', 'r', 'a', '', 'e', 'l', '', 's', 'a', 'l', 't', 'o', '', 'i', 'n', 'i', 'c', 'i', 'a', 'l', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', 'v', 's', '', '@', 'H', 'e', 'b', 'r', 'a', 'i', 'c', 'a', 'y', 'm', 'a', 'c', 'a', 'b', 'i', '', '#', 'L', 'U', 'B', '', '7', 'a', '', 'F', 'I', 'N', 'A', 'L', '', '#', 'V', 'A', 'M', 'O', 'S', 'A', 'G', 'U', 'A', 'D', 'A', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'E', 's', '', 'h', 'o', 'y', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '!', '!', '!', '', 'V', 'a', 'm', 'o', '', 'a', 'r', 'r', 'i', 'b', 'a', '', '!', '!', '', '💪', '🏽', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'E', 's', '', 'h', 'o', 'y', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '!', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'P', 'o', 'r', 'L', 'a', 'N', 'o', 'v', 'e', 'n', 'a', '', '#', 'a', 'g', 'u', 'a', 'd', 'a', '', '@', 'R', 'i', 'n', 'c', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'o', '', '@', 'H', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'e', 'c', 'G', 'C', 'O', 'M', 't', 'y', 'E', '5', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', 'E', 's', '', 'h', 'o', 'y', '!', '!', '!', '', 'T', 'r', 'a', 't', 'o', '', 'd', 'e', '', 'c', 'o', 'n', 'c', 'e', 'n', 't', 'r', 'a', 'r', 'm', 'e', '', 'e', 'n', '', 'e', 'l', '', 't', 'r', 'a', 'b', 'a', 'j', 'o', '', 'y', '', 'l', 'a', '', 'c', 'a', 'b', 'e', 'z', 'a', '', 's', 'e', '', 'm', 'e', '', 'd', 'i', 's', 'p', 'a', 'r', 'a', '', 'a', '', 'c', 'a', 'd', 'a', '', 's', 'e', 'g', 'u', 'n', 'd', 'o', '!', '!', '', '😱', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'H', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', '', '', '|', '', '|', '', '', '', '', '', '', '', 'Y', 'a', '', 'n', 'o', '', 'p', 'u', 'e', 'd', 'o', '', 'm', 'a', 's', '.', '.', '.', '', 'T', 'i', 'e', 'n', 'e', '', 'q', 'u', 'e', '', 's', 'e', 'r', '', 'h', 'o', 'y', '!', '!', '!', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'P', 'o', 'r', 'L', 'a', 'N', 'o', 'v', 'e', 'n', 'a', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'S', 'o', 'm', 'o', 's', '_', 'A', 'g', 'u', 'a', 'd', 'a', '', '@', 'P', 'a', 's', 'i', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'J', 'L', '5', 'i', 'W', 'L', 'H', '0', 'd', '9', '', '', '', '', '', '', '', '|', '', '|', '', 'R', 'T', '', '@', 'C', 'o', 'l', 'e', 't', '1', '2', ':', '', 'C', 'u', 'a', 'n', 'd', 'o', '', 't', 'u', '', 'a', 'm', 'i', 'g', 'a', '', 'h', 'a', 'c', 'e', '', 'l', 'a', '', 'f', 'i', 'l', 'a', '', 'x', 'a', '', 'e', 'l', '', 'p', 'a', 'r', 't', 'i', 'd', 'o', '', '1', '0', 'h', 's', '', 'a', 'n', 't', 'e', 's', '!', '', '❤', '️', '💚', '#', 'J', 'u', 'n', 't', 'o', 's', 'P', 'o', 'r', 'L', 'a', 'N', 'o', 'v', 'e', 'n', 'a', '', '@', 'R', 'i', 'n', 'c', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'o', '', '@', 'H', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'S', 'o', 'm', 'o', 's', '…', '', '|', '', '|', '', 'R', 'T', '', '@', 'T', 'i', 't', 'o', 't', 'i', 'm', 'o', 't', 'h', 'y', 't', 'i', 'm', ':', '', 'Y', 'a', '', 'n', 'o', '', 'p', 'u', 'e', 'd', 'o', '', 'm', 'a', 's', '.', '.', '.', '', 'T', 'i', 'e', 'n', 'e', '', 'q', 'u', 'e', '', 's', 'e', 'r', '', 'h', 'o', 'y', '!', '!', '!', '', '#', 'J', 'u', 'n', 't', 'o', 's', 'P', 'o', 'r', 'L', 'a', 'N', 'o', 'v', 'e', 'n', 'a', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '@', 'S', 'o', 'm', 'o', 's', '_', 'A', 'g', 'u', 'a', 'd', 'a', '', '@', 'P', 'a', 's', 'i', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'a', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'J', '…', '', '|', '', '|', '', 'R', 'T', '', '@', 'd', 'a', 'i', 'a', 'n', 'a', 'b', '8', '1', ':', '', 'A', '', 'P', 'a', 'l', 'a', 'c', 'i', 'o', '', 'y', '', 'E', 's', 't', 'a', 'd', 'i', 'o', '', 'P', 'r', 'o', 'p', 'i', 'o', '', 'l', 'l', 'e', 'n', 'o', '!', '!', '!', '', 'A', 's', 'í', '', 's', 'e', '', 'v', 'i', 'v', 'e', '', 'l', 'a', '', 'f', 'i', 'n', 'a', 'l', '', 'e', 'n', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '❤', '️', '💚', '@', 'R', 'i', 'n', 'c', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'o', '', '@', 'S', 'o', 'm', 'o', 's', '_', 'A', 'g', 'u', '…', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'E', 'S', '', 'H', 'O', 'Y', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '💚', '❤', '️', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', '', '', '', '', '', '', '', '', 'Q', 'u', 'e', '', 'm', 'e', 'j', 'o', 'r', '', 'q', 'u', 'e', '', 'e', 'm', 'p', 'e', 'z', 'a', 'r', '', 'e', 's', 't', 'a', '', 'm', 'a', 'ñ', 'a', 'n', 'a', '', 'd', 'e', '', 'e', 's', 't', 'a', '', 'f', 'o', 'r', 'm', 'a', '.', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', 'E', 's', '', 'h', 'o', 'y', '', 'q', 'u', 'e', 'r', 'i', 'd', 'o', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'o', 'f', 's', 'p', 'H', 'f', 'Z', 'I', 'L', 'j', '', '', '', '', '', '', '', '', '', '', '|', '', '|', '', '', 'A', '', 'P', 'a', 'l', 'a', 'c', 'i', 'o', '', 'y', '', 'E', 's', 't', 'a', 'd', 'i', 'o', '', 'P', 'r', 'o', 'p', 'i', 'o', '', 'l', 'l', 'e', 'n', 'o', '!', '!', '!', '', 'A', 's', 'í', '', 's', 'e', '', 'v', 'i', 'v', 'e', '', 'l', 'a', '', 'f', 'i', 'n', 'a', 'l', '', 'e', 'n', '', '@', 'A', 'g', 'u', 'a', 'd', 'a', '_', 'o', 'f', 'i', 'c', 'i', 'a', 'l', '', '#', 'j', 'u', 'n', 't', 'o', 's', 'p', 'o', 'r', 'l', 'a', 'n', 'o', 'v', 'e', 'n', 'a', '', '❤', '️', '💚', '@', 'R', 'i', 'n', 'c', 'o', 'n', 'A', 'g', 'u', 'a', 't', 'e', 'r', 'o', '…', '', 'h', 't', 't', 'p', 's', ':', '/', '/', 't', '.', 'c', 'o', '/', 'M', 'p', 'G', 'a', 's', '5', 'h', 'Z', 'U', '7', '', '', '|', '', '+', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '+']
+
+
+### Nube de palabras:
+
+
+```python
+plt.imshow(wordcloud1)
+plt.axis('off')
+plt.show()
+
+plt.imshow(wordcloud2)
 plt.axis('off')
 plt.show()
 ```
 
 
-![png](output_52_0.png)
+![png](output_64_0.png)
+
+
+
+![png](output_64_1.png)
+
