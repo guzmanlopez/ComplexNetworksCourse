@@ -1,22 +1,3 @@
-# [Curso *"De las redes complejas a las redes sociales: Introducción al Uso del Big Data"*][d6115b6a]
-
-[d6115b6a]: http://desarrolloterritorial.ei.udelar.edu.uy/?p=2618 "webpage"
-
-## Espacio Interdisciplinario
-
-![Afiche curso](http://desarrolloterritorial.ei.udelar.edu.uy/wp-content/uploads/2017/05/Curso-Modeling_BANNER_AFICHE.png)
-
----
-
-# Trabajo final
-
-Para cargar la base de datos de grafos hay que copiar todos los archivos de la carpeta `graphdb` a la carpeta `/var/lib/neo4j/data/databases/graph.db/ `.
-
-```bash
-sudo cp -v /graphdb/* /var/lib/neo4j/data/databases/graph.db/
-
-```
-
 
 # Análisis de la red de *tweets* y usuarios relacionados con la final de la Liga Uruguaya de Basketball (LUB).
 
